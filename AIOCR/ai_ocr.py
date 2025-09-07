@@ -621,31 +621,36 @@ class Api:
             return self._create_error_result(str(e))
 
     def _parse_result(self, result):
-        """解析OCR结果
-        Args:
-            result: OCR原始结果
-        Returns:
-            格式化后的文本内容
-        """
+        """解析OCR结果，自动插入换行并去除序号以恢复结构"""
         # 替换错误冒号
         content = re.sub(r"(：)(\d+\.)", r"；\2", result)
 
-        # 按“数字序号+.”分组
-        array = re.split(r"(\d+\.)", content)
+        # 在常见结构性标记前插入换行符
+        content = re.sub(
+            r"(?<!\n)([一二三四五六七八九十]+、)", r"\n\1", content
+        )  # 一、二、
+        content = re.sub(r"(?<!\n)(\d+\.)", r"\n\1", content)  # 1. 2.
+        content = re.sub(r"(?<!\n)([（(]\d+[）)])", r"\n\1", content)  # （1）(2)
+        content = re.sub(
+            r"(?<!\n)(（[一二三四五六七八九十]+）)", r"\n\1", content
+        )  # （一）（二）
 
-        # 移除空字符串元素
-        array = [item for item in array if item and not re.match(r"^\d+\.$", item)]
-        content = "\n".join(array)
+        # 去除重复换行
+        content = re.sub(r"\n+", "\n", content)
 
-        # 按“（数字序号）”分组
-        array = re.split(r"([\(（]\d+[\)）])", content)
-        # 移除空字符串元素
-        array = [
-            item
-            for item in array
-            if item and not re.match(r"^([\(（]\d+[\)）])$", item)
-        ]
-        content = "\n".join(array)
+        # 去除首尾空行
+        content = content.strip()
+
+        # 去除序号本身（保留换行后的内容）
+        content = re.sub(
+            r"^\s*[一二三四五六七八九十]+、\s*", "", content, flags=re.MULTILINE
+        )
+        content = re.sub(r"^\s*\d+\.\s*", "", content, flags=re.MULTILINE)
+        content = re.sub(r"^\s*[（(]\d+[）)]\s*", "", content, flags=re.MULTILINE)
+        content = re.sub(
+            r"^\s*（[一二三四五六七八九十]+）\s*", "", content, flags=re.MULTILINE
+        )
+
         logger.debug(f"格式化响应:【{content}】")
         return content
 
