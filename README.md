@@ -1,5 +1,7 @@
 # Umi-OCR AI OCR 插件
-forked from EatWorld/UmiOCR-AI-OCR-Plugin
+
+forked from [EatWorld/UmiOCR-AI-OCR-Plugin](https://github.com/EatWorld/UmiOCR-AI-OCR-Plugin)
+
 ## 🚀 项目简介
 
 本插件为 **Umi-OCR** 提供多个主流AI模型的OCR 功能，支持主流 AI 服务提供商的视觉识别 API。作为离线 OCR 的强力补充，为用户提供更高精度、更广泛语言支持的云端文字识别服务。
