@@ -622,10 +622,19 @@ class Api:
 
     def _parse_result(self, result):
         """解析OCR结果，自动插入换行并去除序号以恢复结构"""
-        # 替换错误冒号
-        content = re.sub(r"(：)(\d+\.)", r"；\2", result)
+        content = result
+        # 1. 替换英文标点为中文标点
+        # 替换英文冒号 : 为中文冒号 ：
+        content = re.sub(r":", "：", content)
+        # 替换英文分号 ; 为中文分号 ；
+        content = re.sub(r";", "；", content)
+        # 替换英文逗号 , 为中文逗号 ，
+        content = re.sub(r",(?!\s*(?:\d+\.\d+|\d{4,}))", "，", content)
 
-        # 在常见结构性标记前插入换行符
+        # 2. 替换错误的中文冒号（在特定模式下，如  ：1.  ->  ；1.）
+        content = re.sub(r"(：)(\d+\.)", r"；\2", content)
+
+        # 3. 在常见结构性标记前插入换行符
         content = re.sub(
             r"(?<!\n)([一二三四五六七八九十]+、)", r"\n\1", content
         )  # 一、二、
@@ -635,13 +644,13 @@ class Api:
             r"(?<!\n)(（[一二三四五六七八九十]+）)", r"\n\1", content
         )  # （一）（二）
 
-        # 去除重复换行
+        # 4. 去除重复换行
         content = re.sub(r"\n+", "\n", content)
 
-        # 去除首尾空行
+        # 5. 去除首尾空行
         content = content.strip()
 
-        # 去除序号本身（保留换行后的内容）
+        # 6. 去除序号本身（保留换行后的内容）
         content = re.sub(
             r"^\s*[一二三四五六七八九十]+、\s*", "", content, flags=re.MULTILINE
         )
